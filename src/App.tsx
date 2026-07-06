@@ -269,76 +269,74 @@ export function App() {
       </aside>
 
       <section className="visual-panel">
+        <section className="time-card-grid" aria-label="Local times">
+          <TimeCard
+            title="Departure"
+            kind="departure"
+            epochMs={currentUtcEpochMs}
+            timeZone={fromAirport.timeZone}
+            airport={fromAirport}
+          />
+          <TimeCard
+            title="Flight Local"
+            kind="flight"
+            epochMs={currentUtcEpochMs}
+            timeZone={flightTimeZone}
+            localTimeParts={flightLocalTimeParts}
+            timeZoneLabel={flightLocalTimeParts?.timeZone}
+          />
+          <TimeCard
+            title="Arrival"
+            kind="arrival"
+            epochMs={currentUtcEpochMs}
+            timeZone={toAirport.timeZone}
+            airport={toAirport}
+          />
+        </section>
+
         <FlightGlobe from={fromAirport} to={toAirport} progress={progress} />
 
-        <div className="flight-overlay">
-          <section className="time-card-grid" aria-label="Local times">
-            <TimeCard
-              title="Departure"
-              kind="departure"
-              epochMs={currentUtcEpochMs}
-              timeZone={fromAirport.timeZone}
-              airport={fromAirport}
-            />
-            <TimeCard
-              title="Flight Local"
-              kind="flight"
-              epochMs={currentUtcEpochMs}
-              timeZone={flightTimeZone}
-              localTimeParts={flightLocalTimeParts}
-              timeZoneLabel={flightLocalTimeParts?.timeZone}
-            />
-            <TimeCard
-              title="Arrival"
-              kind="arrival"
-              epochMs={currentUtcEpochMs}
-              timeZone={toAirport.timeZone}
-              airport={toAirport}
-            />
-          </section>
-
-          <section className="timeline-panel" aria-label="Flight progress">
-            <div className="timeline-panel__header">
-              <div className="timeline-title">
-                <button
-                  className="playback-button"
-                  type="button"
-                  onClick={togglePlayback}
-                  aria-label={isPlaying ? 'Pause flight progress' : 'Play flight progress'}
-                  title={isPlaying ? 'Pause' : 'Play'}
-                >
-                  {isPlaying ? (
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M8 5v14" />
-                      <path d="M16 5v14" />
-                    </svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  )}
-                </button>
-                <span className="summary-label">Progress</span>
-              </div>
-              <strong>{progressText}</strong>
+        <section className="timeline-panel" aria-label="Flight progress">
+          <div className="timeline-panel__header">
+            <div className="timeline-title">
+              <button
+                className="playback-button"
+                type="button"
+                onClick={togglePlayback}
+                aria-label={isPlaying ? 'Pause flight progress' : 'Play flight progress'}
+                title={isPlaying ? 'Pause' : 'Play'}
+              >
+                {isPlaying ? (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14" />
+                    <path d="M16 5v14" />
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                )}
+              </button>
+              <span className="summary-label">Progress</span>
             </div>
-            <input
-              aria-label="Flight progress"
-              className="progress-slider"
-              type="range"
-              min="0"
-              max="1"
-              step="0.005"
-              value={progress}
-              onChange={handleProgressInput}
-              onInput={handleProgressInput}
-            />
-            <div className="timeline-scale">
-              <span>Departure</span>
-              <span>Arrival</span>
-            </div>
-          </section>
-        </div>
+            <strong>{progressText}</strong>
+          </div>
+          <input
+            aria-label="Flight progress"
+            className="progress-slider"
+            type="range"
+            min="0"
+            max="1"
+            step="0.005"
+            value={progress}
+            onChange={handleProgressInput}
+            onInput={handleProgressInput}
+          />
+          <div className="timeline-scale">
+            <span>Departure</span>
+            <span>Arrival</span>
+          </div>
+        </section>
       </section>
     </main>
   );
