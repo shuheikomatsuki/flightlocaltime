@@ -30,7 +30,7 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
     <form className="flight-form">
       <div className="route-fields">
         <div className="field">
-          <label htmlFor="from">出発地</label>
+          <label htmlFor="from">From</label>
           <select
             id="from"
             value={value.fromCode}
@@ -48,8 +48,8 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
           className="swap-route-button"
           type="button"
           onClick={swapAirports}
-          aria-label="出発地と到着地を入れ替え"
-          title="出発地と到着地を入れ替え"
+          aria-label="Swap origin and destination"
+          title="Swap origin and destination"
         >
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M7 7h11l-3-3" />
@@ -60,7 +60,7 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
         </button>
 
         <div className="field">
-          <label htmlFor="to">到着地</label>
+          <label htmlFor="to">To</label>
           <select
             id="to"
             value={value.toCode}
@@ -76,7 +76,7 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
       </div>
 
       <div className="field">
-        <label htmlFor="departure">出発日時</label>
+        <label htmlFor="departure">Departure time</label>
         <input
           id="departure"
           type="datetime-local"
@@ -87,7 +87,7 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
 
       <div className="duration-row">
         <div className="field">
-          <label htmlFor="duration-hours">飛行時間</label>
+          <label htmlFor="duration-hours">Hours</label>
           <input
             id="duration-hours"
             type="number"
@@ -101,7 +101,7 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
         </div>
 
         <div className="field">
-          <label htmlFor="duration-minutes">分</label>
+          <label htmlFor="duration-minutes">Minutes</label>
           <input
             id="duration-minutes"
             type="number"
