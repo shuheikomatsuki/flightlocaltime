@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { FlightForm, type FlightFormValue } from './components/FlightForm';
 import { FlightGlobe } from './components/FlightGlobe';
 import { TimeCard } from './components/TimeCard';
@@ -26,11 +26,17 @@ const defaultFlight: FlightFormValue = {
 
 const FLIGHT_STORAGE_KEY = 'flighttime.flight.v1';
 const PROGRESS_STORAGE_KEY = 'flighttime.progress.v1';
+const PLAYBACK_DURATION_MS = 12_000;
 
 export function App() {
-  const [flight, setFlight] = useState(readStoredFlight);
-  const [progress, setProgress] = useState(readStoredProgress);
+  const [flight, setFlight] = useState(readInitialFlight);
+  const [progress, setProgress] = useState(readInitialProgress);
   const [departureUtcEpochMs, setDepartureUtcEpochMs] = useState<number | null>(null);
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const [isPlaying, setIsPlaying] = useState(false);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastFrameTimeRef = useRef<number | null>(null);
+  const progressRef = useRef(progress);
 
   const fromAirport = useMemo(() => getAirportByCode(flight.fromCode), [flight.fromCode]);
   const toAirport = useMemo(() => getAirportByCode(flight.toCode), [flight.toCode]);
@@ -41,7 +47,47 @@ export function App() {
 
   useEffect(() => {
     writeStorage(PROGRESS_STORAGE_KEY, progress);
+    progressRef.current = progress;
   }, [progress]);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      lastFrameTimeRef.current = null;
+
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+
+      return;
+    }
+
+    const tick = (timestamp: number) => {
+      const lastFrameTime = lastFrameTimeRef.current ?? timestamp;
+      lastFrameTimeRef.current = timestamp;
+      const deltaProgress = (timestamp - lastFrameTime) / PLAYBACK_DURATION_MS;
+      const nextProgress = Math.min(1, progressRef.current + deltaProgress);
+
+      progressRef.current = nextProgress;
+      setProgress(nextProgress);
+
+      if (nextProgress >= 1) {
+        setIsPlaying(false);
+        return;
+      }
+
+      animationFrameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    animationFrameRef.current = window.requestAnimationFrame(tick);
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        window.cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [isPlaying]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -114,7 +160,33 @@ export function App() {
   const durationText = `${flight.durationHours}h ${flight.durationMinutes}m`;
   const progressText = `${Math.round(progress * 100)}%`;
   const handleProgressInput = (event: FormEvent<HTMLInputElement>) => {
-    setProgress(Number(event.currentTarget.value));
+    const nextProgress = Number(event.currentTarget.value);
+    progressRef.current = nextProgress;
+    setProgress(nextProgress);
+  };
+  const shareUrl = useMemo(() => createShareUrl(flight, progress), [flight, progress]);
+  const handleShare = useCallback(async () => {
+    setShareStatus('idle');
+
+    try {
+      await copyTextToClipboard(shareUrl);
+      setShareStatus('copied');
+    } catch {
+      setShareStatus('failed');
+    }
+  }, [shareUrl]);
+  const togglePlayback = () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+      return;
+    }
+
+    if (progress >= 1) {
+      progressRef.current = 0;
+      setProgress(0);
+    }
+
+    setIsPlaying(true);
   };
 
   return (
@@ -126,6 +198,34 @@ export function App() {
         </header>
 
         <FlightForm airports={AIRPORTS} value={flight} onChange={setFlight} />
+
+        <section className="share-panel" aria-label="Share route settings">
+          <button className="share-button" type="button" onClick={handleShare}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="18" cy="5" r="3" />
+              <circle cx="6" cy="12" r="3" />
+              <circle cx="18" cy="19" r="3" />
+              <path d="M8.6 10.7l6.8-4.4" />
+              <path d="M8.6 13.3l6.8 4.4" />
+            </svg>
+            <span>Share URL</span>
+          </button>
+          <input
+            aria-label="Share URL"
+            className="share-url-field"
+            type="text"
+            value={shareUrl}
+            readOnly
+            onFocus={(event) => event.currentTarget.select()}
+          />
+          <p aria-live="polite">
+            {shareStatus === 'copied'
+              ? 'Copied to clipboard'
+              : shareStatus === 'failed'
+                ? 'Copy blocked. Select the URL manually.'
+                : 'Copy current route settings'}
+          </p>
+        </section>
 
         <section className="route-summary" aria-label="Route summary">
           <div>
@@ -157,7 +257,27 @@ export function App() {
         <div className="flight-overlay">
           <section className="timeline-panel" aria-label="Flight progress">
             <div className="timeline-panel__header">
-              <span className="summary-label">Progress</span>
+              <div className="timeline-title">
+                <button
+                  className="playback-button"
+                  type="button"
+                  onClick={togglePlayback}
+                  aria-label={isPlaying ? 'Pause flight progress' : 'Play flight progress'}
+                  title={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? (
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14" />
+                      <path d="M16 5v14" />
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  )}
+                </button>
+                <span className="summary-label">Progress</span>
+              </div>
               <strong>{progressText}</strong>
             </div>
             <input
@@ -207,6 +327,57 @@ export function App() {
   );
 }
 
+function readInitialFlight(): FlightFormValue {
+  return readFlightFromUrl() ?? readStoredFlight();
+}
+
+function readInitialProgress(): number {
+  return readProgressFromUrl() ?? readStoredProgress();
+}
+
+function readFlightFromUrl(): FlightFormValue | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const hasFlightParams = ['from', 'to', 'dt', 'h', 'm', 'mode'].some((key) => params.has(key));
+  const fromCode = params.get('from');
+  const toCode = params.get('to');
+  const departureLocalIso = params.get('dt');
+
+  if (!hasFlightParams) {
+    return null;
+  }
+
+  const mode = params.get('mode');
+
+  return {
+    fromCode: isAirportCode(fromCode) ? fromCode : defaultFlight.fromCode,
+    toCode: isAirportCode(toCode) ? toCode : defaultFlight.toCode,
+    departureLocalIso: isDepartureLocalIso(departureLocalIso)
+      ? departureLocalIso
+      : defaultFlight.departureLocalIso,
+    durationHours: clampInteger(params.get('h'), 0, 24, defaultFlight.durationHours),
+    durationMinutes: clampInteger(params.get('m'), 0, 59, defaultFlight.durationMinutes),
+    flightLocalTimeMode: mode === 'lng' || mode === 'longitude' ? 'longitude' : 'time-zone',
+  };
+}
+
+function readProgressFromUrl(): number | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const params = new URLSearchParams(window.location.search);
+
+  if (!params.has('p')) {
+    return null;
+  }
+
+  return clampNumber(params.get('p'), 0, 1, 0);
+}
+
 function readStoredFlight(): FlightFormValue {
   const storedValue = readStorage(FLIGHT_STORAGE_KEY);
 
@@ -217,11 +388,9 @@ function readStoredFlight(): FlightFormValue {
   return {
     fromCode: isAirportCode(storedValue.fromCode) ? storedValue.fromCode : defaultFlight.fromCode,
     toCode: isAirportCode(storedValue.toCode) ? storedValue.toCode : defaultFlight.toCode,
-    departureLocalIso:
-      typeof storedValue.departureLocalIso === 'string' &&
-      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(storedValue.departureLocalIso)
-        ? storedValue.departureLocalIso
-        : defaultFlight.departureLocalIso,
+    departureLocalIso: isDepartureLocalIso(storedValue.departureLocalIso)
+      ? storedValue.departureLocalIso
+      : defaultFlight.departureLocalIso,
     durationHours: clampInteger(storedValue.durationHours, 0, 24, defaultFlight.durationHours),
     durationMinutes: clampInteger(
       storedValue.durationMinutes,
@@ -238,6 +407,45 @@ function readStoredProgress(): number {
   const storedValue = readStorage(PROGRESS_STORAGE_KEY);
 
   return clampNumber(storedValue, 0, 1, 0);
+}
+
+function createShareUrl(flight: FlightFormValue, progress: number): string {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.hash = '';
+  url.searchParams.set('from', flight.fromCode);
+  url.searchParams.set('to', flight.toCode);
+  url.searchParams.set('dt', flight.departureLocalIso);
+  url.searchParams.set('h', String(flight.durationHours));
+  url.searchParams.set('m', String(flight.durationMinutes));
+  url.searchParams.set('mode', flight.flightLocalTimeMode === 'longitude' ? 'lng' : 'tz');
+  url.searchParams.set('p', progress.toFixed(3).replace(/0+$/, '').replace(/\.$/, ''));
+
+  return url.toString();
+}
+
+async function copyTextToClipboard(text: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+    return;
+  } catch {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '-9999px';
+    document.body.append(textarea);
+    textarea.select();
+
+    try {
+      if (!document.execCommand('copy')) {
+        throw new Error('Copy command failed');
+      }
+    } finally {
+      textarea.remove();
+    }
+  }
 }
 
 function readStorage(key: string): unknown {
@@ -267,6 +475,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function isAirportCode(value: unknown): value is string {
   return typeof value === 'string' && AIRPORTS.some((airport) => airport.code === value);
+}
+
+function isDepartureLocalIso(value: unknown): value is string {
+  return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(value);
 }
 
 function clampInteger(value: unknown, min: number, max: number, fallback: number): number {
