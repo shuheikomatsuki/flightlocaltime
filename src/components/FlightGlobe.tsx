@@ -9,7 +9,6 @@ import {
   type RefObject,
 } from 'react';
 import type { GlobeMethods } from 'react-globe.gl';
-import { MeshPhongMaterial } from 'three';
 import type { Airport } from '../data/airports';
 import {
   getInitialRouteDirection,
@@ -51,12 +50,6 @@ type PlaneMarker = {
   lng: number;
   direction: RouteDirection;
 };
-
-const globeMaterial = new MeshPhongMaterial({
-  color: '#1f6f7a',
-  emissive: '#082c36',
-  shininess: 7,
-});
 
 export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -127,7 +120,8 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
               height={size.height}
               globeOffset={[0, -56]}
               backgroundColor="rgba(0,0,0,0)"
-              globeMaterial={globeMaterial}
+              globeImageUrl="/textures/earth-dark.jpg"
+              bumpImageUrl="/textures/earth-topology.png"
               onGlobeReady={() => {
                 setIsGlobeReady(true);
                 focusRoute();

@@ -283,6 +283,11 @@ p {
   white-space: nowrap;
 }
 
+.time-card--flight .summary-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.025em;
+}
+
 .time-card__body {
   display: grid;
   grid-template-rows: 1.6rem 1.1rem;
