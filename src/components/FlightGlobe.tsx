@@ -14,7 +14,6 @@ import {
   getInitialRouteDirection,
   interpolateGreatCircle,
   sampleGreatCircleRoute,
-  type Coordinates,
   type RouteDirection,
 } from '../lib/route';
 
@@ -157,41 +156,7 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
           ) : null}
         </Suspense>
       </div>
-      <RouteBadge
-        from={from}
-        to={to}
-        direction={direction}
-        progress={progress}
-        coordinates={planeCoordinates}
-      />
     </section>
-  );
-}
-
-function RouteBadge({
-  from,
-  to,
-  direction,
-  progress,
-  coordinates,
-}: {
-  from: Airport;
-  to: Airport;
-  direction: RouteDirection;
-  progress: number;
-  coordinates: Coordinates;
-}) {
-  return (
-    <div className="route-badge">
-      <span>
-        {from.code} to {to.code}
-      </span>
-      <span>{direction === 'eastbound' ? 'Eastbound' : 'Westbound'}</span>
-      <span>{Math.round(progress * 100)}%</span>
-      <span>
-        {coordinates.latitude.toFixed(1)}, {coordinates.longitude.toFixed(1)}
-      </span>
-    </div>
   );
 }
 

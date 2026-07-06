@@ -26,10 +26,12 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 body,
 #root {
+  width: 100%;
   min-height: 100vh;
 }
 
@@ -76,6 +78,7 @@ input:focus {
   display: grid;
   grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
   gap: 0;
+  width: 100%;
   min-height: 100vh;
   background: linear-gradient(90deg, rgba(238, 243, 242, 0.96), rgba(238, 243, 242, 0.64)), #dfeceb;
 }
@@ -253,6 +256,12 @@ p {
   padding: 10px;
 }
 
+.share-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
 .share-button {
   display: inline-flex;
   min-height: 38px;
@@ -266,6 +275,12 @@ p {
   font-size: 0.86rem;
   font-weight: 800;
   cursor: pointer;
+}
+
+.share-button--secondary {
+  padding-inline: 12px;
+  color: #50656c;
+  font-size: 0.78rem;
 }
 
 .share-button:hover {
@@ -283,7 +298,7 @@ p {
   height: 17px;
 }
 
-.share-button circle,
+.share-button rect,
 .share-button path {
   fill: none;
   stroke: currentColor;
@@ -415,20 +430,20 @@ p {
 .time-card-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .time-card {
   position: relative;
   display: grid;
-  grid-template-rows: 78px 58px 48px;
-  gap: 9px;
-  min-height: 226px;
+  grid-template-rows: 70px 52px 24px;
+  gap: 7px;
+  min-height: 177px;
   overflow: hidden;
   border: 1px solid rgba(214, 224, 225, 0.9);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-  padding: 12px;
+  padding: 11px;
   box-shadow: 0 12px 32px rgba(10, 28, 32, 0.14);
 }
 
@@ -467,13 +482,13 @@ p {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  gap: 12px;
-  min-height: 78px;
+  gap: 10px;
+  min-height: 70px;
 }
 
 .time-card__header > div {
   display: grid;
-  grid-template-rows: 18px 48px;
+  grid-template-rows: 18px 42px;
   min-width: 0;
 }
 
@@ -501,7 +516,7 @@ p {
   display: grid;
   grid-template-rows: 1.6rem 1.1rem;
   gap: 2px;
-  min-height: 58px;
+  min-height: 52px;
 }
 
 .time-card time {
@@ -519,10 +534,8 @@ p {
 
 .time-card footer {
   display: grid;
-  grid-template-rows: repeat(2, minmax(0, auto));
-  gap: 3px;
   align-content: end;
-  min-height: 48px;
+  min-height: 24px;
 }
 
 .time-card__zone {
@@ -590,12 +603,18 @@ p {
 
 .flight-overlay {
   position: absolute;
+  top: 72px;
   right: 24px;
-  bottom: 24px;
+  bottom: 18px;
   left: 24px;
   z-index: 2;
   display: grid;
-  gap: 12px;
+  grid-template-areas:
+    'cards'
+    '.'
+    'timeline';
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
   pointer-events: none;
 }
 
@@ -604,8 +623,13 @@ p {
 }
 
 .flight-overlay .timeline-panel {
+  grid-area: timeline;
   justify-self: end;
   width: min(430px, 100%);
+}
+
+.flight-overlay .time-card-grid {
+  grid-area: cards;
 }
 
 .globe-stage {
@@ -627,27 +651,6 @@ p {
   place-items: center;
   color: #e7f1ef;
   font-size: 0.875rem;
-}
-
-.route-badge {
-  position: absolute;
-  right: 24px;
-  top: 24px;
-  z-index: 2;
-  display: flex;
-  max-width: min(620px, calc(100% - 48px));
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.route-badge span {
-  border: 1px solid rgba(231, 241, 239, 0.22);
-  border-radius: 999px;
-  background: rgba(10, 28, 32, 0.72);
-  color: #e7f1ef;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 7px 10px;
 }
 
 .plane-marker {
@@ -701,6 +704,8 @@ p {
 
   .visual-panel {
     order: 1;
+    width: 100%;
+    overflow: hidden;
   }
 
   .visual-panel,
@@ -719,18 +724,8 @@ p {
     grid-template-columns: 1fr;
   }
 
-  .route-badge {
-    top: 12px;
-    right: 14px;
-    max-width: calc(100% - 28px);
-  }
-
-  .route-badge span {
-    font-size: 0.68rem;
-    padding: 5px 8px;
-  }
-
   .flight-overlay {
+    top: 54px;
     right: 12px;
     bottom: 12px;
     left: 12px;
@@ -748,9 +743,9 @@ p {
   }
 
   .time-card {
-    grid-template-rows: 70px 48px 36px;
-    gap: 7px;
-    min-height: 182px;
+    grid-template-rows: 70px 48px 22px;
+    gap: 6px;
+    min-height: 162px;
     min-width: 0;
     padding: 8px;
   }
@@ -789,8 +784,7 @@ p {
   }
 
   .time-card footer {
-    gap: 2px;
-    min-height: 36px;
+    min-height: 22px;
   }
 
   .celestial {

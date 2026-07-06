@@ -32,7 +32,7 @@ export function App() {
   const [flight, setFlight] = useState(readInitialFlight);
   const [progress, setProgress] = useState(readInitialProgress);
   const [departureUtcEpochMs, setDepartureUtcEpochMs] = useState<number | null>(null);
-  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
+  const [shareStatus, setShareStatus] = useState<'idle' | 'copied' | 'failed' | 'reset'>('idle');
   const [isPlaying, setIsPlaying] = useState(false);
   const animationFrameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
@@ -175,6 +175,10 @@ export function App() {
       setShareStatus('failed');
     }
   }, [shareUrl]);
+  const handleResetUrl = useCallback(() => {
+    window.history.replaceState(window.history.state, '', createCleanCurrentUrl());
+    setShareStatus('reset');
+  }, []);
   const togglePlayback = () => {
     if (isPlaying) {
       setIsPlaying(false);
@@ -200,18 +204,29 @@ export function App() {
         <FlightForm airports={AIRPORTS} value={flight} onChange={setFlight} />
 
         <section className="share-panel" aria-label="Share route settings">
-          <button className="share-button" type="button" onClick={handleShare}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <path d="M8.6 10.7l6.8-4.4" />
-              <path d="M8.6 13.3l6.8 4.4" />
-            </svg>
-            <span>Share URL</span>
-          </button>
+          <div className="share-actions">
+            <button className="share-button" type="button" onClick={handleShare}>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="8" y="8" width="11" height="11" rx="2" />
+                <path d="M5 15V7a2 2 0 0 1 2-2h8" />
+              </svg>
+              <span>Copy URL</span>
+            </button>
+            <button
+              className="share-button share-button--secondary"
+              type="button"
+              onClick={handleResetUrl}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 7h11a5 5 0 1 1-3.5 8.5" />
+                <path d="M4 7l4-4" />
+                <path d="M4 7l4 4" />
+              </svg>
+              <span>Reset URL</span>
+            </button>
+          </div>
           <input
-            aria-label="Share URL"
+            aria-label="Copy URL"
             className="share-url-field"
             type="text"
             value={shareUrl}
@@ -223,7 +238,9 @@ export function App() {
               ? 'Copied to clipboard'
               : shareStatus === 'failed'
                 ? 'Copy blocked. Select the URL manually.'
-                : 'Copy current route settings'}
+                : shareStatus === 'reset'
+                  ? 'Address bar URL reset'
+                  : 'Copy current route settings'}
           </p>
         </section>
 
@@ -255,6 +272,31 @@ export function App() {
         <FlightGlobe from={fromAirport} to={toAirport} progress={progress} />
 
         <div className="flight-overlay">
+          <section className="time-card-grid" aria-label="Local times">
+            <TimeCard
+              title="Departure"
+              kind="departure"
+              epochMs={currentUtcEpochMs}
+              timeZone={fromAirport.timeZone}
+              airport={fromAirport}
+            />
+            <TimeCard
+              title="Flight Local"
+              kind="flight"
+              epochMs={currentUtcEpochMs}
+              timeZone={flightTimeZone}
+              localTimeParts={flightLocalTimeParts}
+              timeZoneLabel={flightLocalTimeParts?.timeZone}
+            />
+            <TimeCard
+              title="Arrival"
+              kind="arrival"
+              epochMs={currentUtcEpochMs}
+              timeZone={toAirport.timeZone}
+              airport={toAirport}
+            />
+          </section>
+
           <section className="timeline-panel" aria-label="Flight progress">
             <div className="timeline-panel__header">
               <div className="timeline-title">
@@ -295,31 +337,6 @@ export function App() {
               <span>Departure</span>
               <span>Arrival</span>
             </div>
-          </section>
-
-          <section className="time-card-grid" aria-label="Local times">
-            <TimeCard
-              title="Departure"
-              kind="departure"
-              epochMs={currentUtcEpochMs}
-              timeZone={fromAirport.timeZone}
-              airport={fromAirport}
-            />
-            <TimeCard
-              title="Flight Local"
-              kind="flight"
-              epochMs={currentUtcEpochMs}
-              timeZone={flightTimeZone}
-              localTimeParts={flightLocalTimeParts}
-              timeZoneLabel={flightLocalTimeParts?.timeZone}
-            />
-            <TimeCard
-              title="Arrival"
-              kind="arrival"
-              epochMs={currentUtcEpochMs}
-              timeZone={toAirport.timeZone}
-              airport={toAirport}
-            />
           </section>
         </div>
       </section>
@@ -420,6 +437,14 @@ function createShareUrl(flight: FlightFormValue, progress: number): string {
   url.searchParams.set('m', String(flight.durationMinutes));
   url.searchParams.set('mode', flight.flightLocalTimeMode === 'longitude' ? 'lng' : 'tz');
   url.searchParams.set('p', progress.toFixed(3).replace(/0+$/, '').replace(/\.$/, ''));
+
+  return url.toString();
+}
+
+function createCleanCurrentUrl(): string {
+  const url = new URL(window.location.href);
+  url.search = '';
+  url.hash = '';
 
   return url.toString();
 }
