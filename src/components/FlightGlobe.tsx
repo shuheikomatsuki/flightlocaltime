@@ -20,6 +20,7 @@ import {
 } from '../lib/route';
 
 const Globe = lazy(() => import('react-globe.gl'));
+const SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 
 type FlightGlobeProps = {
   from: Airport;
@@ -206,7 +207,57 @@ function createPlaneElement(marker: PlaneMarker): HTMLElement {
 
   const plane = document.createElement('span');
   plane.className = `plane-shape plane-shape--${marker.direction}`;
-  plane.append(document.createElement('span'));
+
+  const svg = document.createElementNS(SVG_NAMESPACE, 'svg');
+  svg.setAttribute('class', 'plane-icon');
+  svg.setAttribute('viewBox', '0 0 64 64');
+  svg.setAttribute('aria-hidden', 'true');
+
+  const body = document.createElementNS(SVG_NAMESPACE, 'path');
+  body.setAttribute('class', 'plane-icon__body');
+  body.setAttribute(
+    'd',
+    [
+      'M58 32',
+      'c0-2.3-1.7-3.6-4.6-4',
+      'l-16.1-2.3',
+      'L30.2 7.8',
+      'C29.8 6.7 28.8 6 27.6 6',
+      'h-4',
+      'c-0.9 0-1.5 0.9-1.2 1.8',
+      'L27.6 24.4',
+      'l-13.5-1.9',
+      'l-5.7-7.8',
+      'C7.9 14 7.1 13.6 6.3 13.6',
+      'H4.1',
+      'c-0.9 0-1.5 0.9-1.1 1.7',
+      'L8.7 32',
+      'L3 48.7',
+      'c-0.3 0.8 0.3 1.7 1.1 1.7',
+      'h2.2',
+      'c0.8 0 1.6-0.4 2.1-1.1',
+      'l5.7-7.8',
+      'l13.5-1.9',
+      'l-5.2 16.6',
+      'c-0.3 0.9 0.3 1.8 1.2 1.8',
+      'h4',
+      'c1.2 0 2.2-0.7 2.6-1.8',
+      'l7.1-17.9',
+      'L53.4 36',
+      'c2.9-0.4 4.6-1.7 4.6-4',
+      'Z',
+    ].join(' '),
+  );
+
+  const cockpit = document.createElementNS(SVG_NAMESPACE, 'path');
+  cockpit.setAttribute('class', 'plane-icon__cockpit');
+  cockpit.setAttribute(
+    'd',
+    'M48 30.2c2.2 0.3 3.4 0.9 3.4 1.8s-1.2 1.5-3.4 1.8l-6.5 0.9v-5.4l6.5 0.9Z',
+  );
+
+  svg.append(body, cockpit);
+  plane.append(svg);
   element.append(plane);
 
   return element;
