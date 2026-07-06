@@ -436,14 +436,14 @@ p {
 .time-card {
   position: relative;
   display: grid;
-  grid-template-rows: 70px 52px 24px;
-  gap: 7px;
-  min-height: 177px;
+  grid-template-rows: 48px 48px 20px;
+  gap: 5px;
+  min-height: 140px;
   overflow: hidden;
   border: 1px solid rgba(214, 224, 225, 0.9);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.92);
-  padding: 11px;
+  padding: 10px;
   box-shadow: 0 12px 32px rgba(10, 28, 32, 0.14);
 }
 
@@ -480,23 +480,21 @@ p {
 
 .time-card__header {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   align-items: flex-start;
-  gap: 10px;
-  min-height: 70px;
+  min-height: 48px;
 }
 
 .time-card__header > div {
   display: grid;
-  grid-template-rows: 18px 42px;
+  grid-template-rows: 17px 29px;
   min-width: 0;
 }
 
 .time-card h2 {
-  margin: 2px 0 0;
+  margin: 1px 0 0;
   color: #162025;
   font-size: 0.92rem;
-  line-height: 1.2;
+  line-height: 1.12;
   max-height: 2.4em;
   overflow: hidden;
 }
@@ -515,8 +513,8 @@ p {
 .time-card__body {
   display: grid;
   grid-template-rows: 1.6rem 1.1rem;
-  gap: 2px;
-  min-height: 52px;
+  gap: 1px;
+  min-height: 48px;
 }
 
 .time-card time {
@@ -535,61 +533,13 @@ p {
 .time-card footer {
   display: grid;
   align-content: end;
-  min-height: 24px;
+  min-height: 20px;
 }
 
 .time-card__zone {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.celestial {
-  position: relative;
-  flex: 0 0 auto;
-  width: 46px;
-  height: 38px;
-  border-radius: 8px;
-  background: rgba(22, 32, 37, 0.08);
-}
-
-.celestial::before {
-  position: absolute;
-  right: 8px;
-  bottom: 8px;
-  left: 8px;
-  height: 18px;
-  border-top: 1px solid rgba(80, 101, 108, 0.18);
-  border-radius: 50% 50% 0 0;
-  content: '';
-}
-
-.celestial > span {
-  position: absolute;
-  top: var(--celestial-y);
-  left: var(--celestial-x);
-  width: 18px;
-  height: 18px;
-  transform: translate(-50%, -50%);
-}
-
-.celestial--morning > span,
-.celestial--daytime > span,
-.celestial--evening > span {
-  border-radius: 50%;
-  background: #f2c14e;
-  box-shadow: 0 0 0 5px rgba(242, 193, 78, 0.16);
-}
-
-.celestial--evening > span {
-  background: #f78154;
-  box-shadow: 0 0 0 5px rgba(247, 129, 84, 0.14);
-}
-
-.celestial--night > span {
-  border-radius: 50%;
-  background: #dbe9ef;
-  box-shadow: inset -6px 0 0 #8aa1ad;
 }
 
 .visual-panel {
@@ -603,7 +553,7 @@ p {
 
 .flight-overlay {
   position: absolute;
-  top: 72px;
+  top: 12px;
   right: 24px;
   bottom: 18px;
   left: 24px;
@@ -725,7 +675,7 @@ p {
   }
 
   .flight-overlay {
-    top: 54px;
+    top: 8px;
     right: 12px;
     bottom: 12px;
     left: 12px;
@@ -743,20 +693,19 @@ p {
   }
 
   .time-card {
-    grid-template-rows: 70px 48px 22px;
-    gap: 6px;
-    min-height: 162px;
+    grid-template-rows: 47px 43px 18px;
+    gap: 4px;
+    min-height: 128px;
     min-width: 0;
     padding: 8px;
   }
 
   .time-card__header {
-    gap: 6px;
-    min-height: 70px;
+    min-height: 47px;
   }
 
   .time-card__header > div {
-    grid-template-rows: 15px 42px;
+    grid-template-rows: 14px 31px;
   }
 
   .time-card h2 {
@@ -775,7 +724,8 @@ p {
 
   .time-card__body {
     grid-template-rows: 1.3rem 0.9rem;
-    min-height: 48px;
+    gap: 0;
+    min-height: 43px;
   }
 
   .time-card__body span,
@@ -784,24 +734,6 @@ p {
   }
 
   .time-card footer {
-    min-height: 22px;
-  }
-
-  .celestial {
-    width: 30px;
-    height: 30px;
-    border-radius: 6px;
-  }
-
-  .celestial::before {
-    right: 5px;
-    bottom: 6px;
-    left: 5px;
-    height: 12px;
-  }
-
-  .celestial > span {
-    width: 13px;
-    height: 13px;
+    min-height: 18px;
   }
 }
