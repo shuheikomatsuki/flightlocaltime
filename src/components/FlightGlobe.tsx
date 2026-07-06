@@ -1,0 +1,227 @@
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
+import type { GlobeMethods } from 'react-globe.gl';
+import { MeshPhongMaterial } from 'three';
+import type { Airport } from '../data/airports';
+import {
+  getInitialRouteDirection,
+  interpolateGreatCircle,
+  sampleGreatCircleRoute,
+  type Coordinates,
+  type RouteDirection,
+} from '../lib/route';
+
+const Globe = lazy(() => import('react-globe.gl'));
+
+type FlightGlobeProps = {
+  from: Airport;
+  to: Airport;
+};
+
+type AirportPoint = {
+  code: string;
+  label: string;
+  lat: number;
+  lng: number;
+  color: string;
+};
+
+type PathPoint = {
+  lat: number;
+  lng: number;
+  altitude: number;
+};
+
+type FlightPath = {
+  points: PathPoint[];
+};
+
+type FlightArc = {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+};
+
+const globeMaterial = new MeshPhongMaterial({
+  color: '#1f6f7a',
+  emissive: '#082c36',
+  shininess: 7,
+});
+
+export function FlightGlobe({ from, to }: FlightGlobeProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const globeRef = useRef<GlobeMethods>(undefined);
+  const [isGlobeReady, setIsGlobeReady] = useState(false);
+  const size = useElementSize(containerRef);
+
+  const airportPoints = useMemo<AirportPoint[]>(
+    () => [toAirportPoint(from, '出発地', '#f2c14e'), toAirportPoint(to, '到着地', '#f78154')],
+    [from, to],
+  );
+
+  const routePath = useMemo<FlightPath[]>(
+    () => [
+      {
+        points: sampleGreatCircleRoute({ from, to }, 96).map(({ coordinates }) => ({
+          lat: coordinates.latitude,
+          lng: coordinates.longitude,
+          altitude: 0.02,
+        })),
+      },
+    ],
+    [from, to],
+  );
+
+  const routeArc = useMemo<FlightArc[]>(
+    () => [
+      {
+        startLat: from.latitude,
+        startLng: from.longitude,
+        endLat: to.latitude,
+        endLng: to.longitude,
+      },
+    ],
+    [from, to],
+  );
+
+  const midpoint = useMemo(() => interpolateGreatCircle({ from, to }, 0.5), [from, to]);
+  const direction = useMemo(() => getInitialRouteDirection(from, to), [from, to]);
+
+  const focusRoute = useCallback(() => {
+    globeRef.current?.pointOfView(
+      {
+        lat: midpoint.latitude,
+        lng: midpoint.longitude,
+        altitude: 1.75,
+      },
+      900,
+    );
+  }, [midpoint]);
+
+  useEffect(() => {
+    if (isGlobeReady) {
+      focusRoute();
+    }
+  }, [focusRoute, isGlobeReady]);
+
+  return (
+    <section className="globe-stage" aria-label="Flight route globe">
+      <div className="globe-canvas" ref={containerRef}>
+        <Suspense fallback={<div className="globe-loading">Loading globe</div>}>
+          {size.width > 0 && size.height > 0 ? (
+            <Globe
+              ref={globeRef}
+              width={size.width}
+              height={size.height}
+              backgroundColor="rgba(0,0,0,0)"
+              globeMaterial={globeMaterial}
+              onGlobeReady={() => {
+                setIsGlobeReady(true);
+                focusRoute();
+              }}
+              showAtmosphere
+              atmosphereColor="#8fd0d6"
+              atmosphereAltitude={0.14}
+              showGraticules
+              pointsData={airportPoints}
+              pointLat="lat"
+              pointLng="lng"
+              pointColor="color"
+              pointAltitude={0.05}
+              pointRadius={0.46}
+              pointResolution={24}
+              pointLabel="label"
+              arcsData={routeArc}
+              arcStartLat="startLat"
+              arcStartLng="startLng"
+              arcEndLat="endLat"
+              arcEndLng="endLng"
+              arcColor={() => ['#f2c14e', '#f78154']}
+              arcAltitude={0.28}
+              arcStroke={1.35}
+              arcCurveResolution={72}
+              pathsData={routePath}
+              pathPoints="points"
+              pathPointLat="lat"
+              pathPointLng="lng"
+              pathPointAlt="altitude"
+              pathColor={() => '#fff2a8'}
+              pathStroke={2.2}
+              pathResolution={2}
+              enablePointerInteraction
+            />
+          ) : null}
+        </Suspense>
+      </div>
+      <RouteBadge from={from} to={to} direction={direction} midpoint={midpoint} />
+    </section>
+  );
+}
+
+function RouteBadge({
+  from,
+  to,
+  direction,
+  midpoint,
+}: {
+  from: Airport;
+  to: Airport;
+  direction: RouteDirection;
+  midpoint: Coordinates;
+}) {
+  return (
+    <div className="route-badge">
+      <span>
+        {from.code} to {to.code}
+      </span>
+      <span>{direction === 'eastbound' ? 'Eastbound' : 'Westbound'}</span>
+      <span>
+        {midpoint.latitude.toFixed(1)}, {midpoint.longitude.toFixed(1)}
+      </span>
+    </div>
+  );
+}
+
+function toAirportPoint(airport: Airport, kind: string, color: string): AirportPoint {
+  return {
+    code: airport.code,
+    label: `${kind}: ${airport.code} ${airport.city}`,
+    lat: airport.latitude,
+    lng: airport.longitude,
+    color,
+  };
+}
+
+function useElementSize(ref: RefObject<HTMLElement | null>) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const element = ref.current;
+
+    if (!element) {
+      return;
+    }
+
+    const observer = new ResizeObserver(([entry]) => {
+      const { width, height } = entry.contentRect;
+      setSize({
+        width: Math.round(width),
+        height: Math.round(height),
+      });
+    });
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return size;
+}
