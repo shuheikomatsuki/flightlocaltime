@@ -45,13 +45,6 @@ type FlightPath = {
   points: PathPoint[];
 };
 
-type FlightArc = {
-  startLat: number;
-  startLng: number;
-  endLat: number;
-  endLng: number;
-};
-
 type PlaneMarker = {
   lat: number;
   lng: number;
@@ -88,18 +81,6 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
     [from, to],
   );
 
-  const routeArc = useMemo<FlightArc[]>(
-    () => [
-      {
-        startLat: from.latitude,
-        startLng: from.longitude,
-        endLat: to.latitude,
-        endLng: to.longitude,
-      },
-    ],
-    [from, to],
-  );
-
   const midpoint = useMemo(() => interpolateGreatCircle({ from, to }, 0.5), [from, to]);
   const direction = useMemo(() => getInitialRouteDirection(from, to), [from, to]);
   const planeCoordinates = useMemo(
@@ -122,7 +103,7 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
       {
         lat: midpoint.latitude,
         lng: midpoint.longitude,
-        altitude: 1.75,
+        altitude: 2.15,
       },
       900,
     );
@@ -161,15 +142,6 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
               pointRadius={0.46}
               pointResolution={24}
               pointLabel="label"
-              arcsData={routeArc}
-              arcStartLat="startLat"
-              arcStartLng="startLng"
-              arcEndLat="endLat"
-              arcEndLng="endLng"
-              arcColor={() => ['#f2c14e', '#f78154']}
-              arcAltitude={0.28}
-              arcStroke={1.35}
-              arcCurveResolution={72}
               pathsData={routePath}
               pathPoints="points"
               pathPointLat="lat"
@@ -181,7 +153,7 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
               htmlElementsData={planeMarker}
               htmlLat="lat"
               htmlLng="lng"
-              htmlAltitude={0.34}
+              htmlAltitude={0.08}
               htmlElement={(datum) => createPlaneElement(datum as PlaneMarker)}
               htmlTransitionDuration={80}
               enablePointerInteraction
@@ -233,6 +205,7 @@ function createPlaneElement(marker: PlaneMarker): HTMLElement {
 
   const plane = document.createElement('span');
   plane.className = `plane-shape plane-shape--${marker.direction}`;
+  plane.append(document.createElement('span'));
   element.append(plane);
 
   return element;

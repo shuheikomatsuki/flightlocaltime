@@ -88,32 +88,10 @@ export function App() {
       <aside className="control-panel">
         <header className="app-header">
           <p className="eyebrow">Flight Timezone</p>
-          <h1>Flighttime</h1>
+          <h1>Flight Time</h1>
         </header>
 
         <FlightForm airports={AIRPORTS} value={flight} onChange={setFlight} />
-
-        <section className="timeline-panel" aria-label="Flight progress">
-          <div className="timeline-panel__header">
-            <span className="summary-label">Progress</span>
-            <strong>{progressText}</strong>
-          </div>
-          <input
-            aria-label="Flight progress"
-            className="progress-slider"
-            type="range"
-            min="0"
-            max="1"
-            step="0.005"
-            value={progress}
-            onChange={handleProgressInput}
-            onInput={handleProgressInput}
-          />
-          <div className="timeline-scale">
-            <span>Departure</span>
-            <span>Arrival</span>
-          </div>
-        </section>
 
         <section className="route-summary" aria-label="Route summary">
           <div>
@@ -137,33 +115,57 @@ export function App() {
             </span>
           </div>
         </section>
-
-        <section className="time-card-grid" aria-label="Local times">
-          <TimeCard
-            title="Departure"
-            kind="departure"
-            epochMs={currentUtcEpochMs}
-            timeZone={fromAirport.timeZone}
-            airport={fromAirport}
-          />
-          <TimeCard
-            title="Flight Local"
-            kind="flight"
-            epochMs={currentUtcEpochMs}
-            timeZone={flightTimeZone}
-          />
-          <TimeCard
-            title="Arrival"
-            kind="arrival"
-            epochMs={currentUtcEpochMs}
-            timeZone={toAirport.timeZone}
-            airport={toAirport}
-          />
-        </section>
       </aside>
 
       <section className="visual-panel">
         <FlightGlobe from={fromAirport} to={toAirport} progress={progress} />
+
+        <div className="flight-overlay">
+          <section className="timeline-panel" aria-label="Flight progress">
+            <div className="timeline-panel__header">
+              <span className="summary-label">Progress</span>
+              <strong>{progressText}</strong>
+            </div>
+            <input
+              aria-label="Flight progress"
+              className="progress-slider"
+              type="range"
+              min="0"
+              max="1"
+              step="0.005"
+              value={progress}
+              onChange={handleProgressInput}
+              onInput={handleProgressInput}
+            />
+            <div className="timeline-scale">
+              <span>Departure</span>
+              <span>Arrival</span>
+            </div>
+          </section>
+
+          <section className="time-card-grid" aria-label="Local times">
+            <TimeCard
+              title="Departure"
+              kind="departure"
+              epochMs={currentUtcEpochMs}
+              timeZone={fromAirport.timeZone}
+              airport={fromAirport}
+            />
+            <TimeCard
+              title="Flight Local"
+              kind="flight"
+              epochMs={currentUtcEpochMs}
+              timeZone={flightTimeZone}
+            />
+            <TimeCard
+              title="Arrival"
+              kind="arrival"
+              epochMs={currentUtcEpochMs}
+              timeZone={toAirport.timeZone}
+              airport={toAirport}
+            />
+          </section>
+        </div>
       </section>
     </main>
   );
