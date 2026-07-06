@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Airport } from '../data/airports';
 
 export type FlightLocalTimeMode = 'time-zone' | 'longitude';
@@ -18,6 +19,9 @@ type FlightFormProps = {
 };
 
 export function FlightForm({ airports, value, onChange }: FlightFormProps) {
+  const [durationHoursText, setDurationHoursText] = useState(String(value.durationHours));
+  const [durationMinutesText, setDurationMinutesText] = useState(String(value.durationMinutes));
+
   const swapAirports = () => {
     onChange({
       ...value,
@@ -90,13 +94,16 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
           <label htmlFor="duration-hours">Hours</label>
           <input
             id="duration-hours"
-            type="number"
-            min="0"
-            max="24"
-            value={value.durationHours}
-            onChange={(event) =>
-              onChange({ ...value, durationHours: Number(event.target.value) || 0 })
-            }
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={durationHoursText}
+            onBlur={() => setDurationHoursText(String(value.durationHours))}
+            onChange={(event) => {
+              const nextValue = normalizeDurationInput(event.target.value, 24);
+              setDurationHoursText(nextValue.text);
+              onChange({ ...value, durationHours: nextValue.value });
+            }}
           />
         </div>
 
@@ -104,13 +111,16 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
           <label htmlFor="duration-minutes">Minutes</label>
           <input
             id="duration-minutes"
-            type="number"
-            min="0"
-            max="59"
-            value={value.durationMinutes}
-            onChange={(event) =>
-              onChange({ ...value, durationMinutes: Number(event.target.value) || 0 })
-            }
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            value={durationMinutesText}
+            onBlur={() => setDurationMinutesText(String(value.durationMinutes))}
+            onChange={(event) => {
+              const nextValue = normalizeDurationInput(event.target.value, 59);
+              setDurationMinutesText(nextValue.text);
+              onChange({ ...value, durationMinutes: nextValue.value });
+            }}
           />
         </div>
       </div>
@@ -142,4 +152,19 @@ export function FlightForm({ airports, value, onChange }: FlightFormProps) {
       </fieldset>
     </form>
   );
+}
+
+function normalizeDurationInput(rawValue: string, max: number): { text: string; value: number } {
+  const digits = rawValue.replace(/\D/g, '');
+
+  if (digits === '') {
+    return { text: '', value: 0 };
+  }
+
+  const value = Math.min(max, Number(digits));
+
+  return {
+    text: String(value),
+    value,
+  };
 }

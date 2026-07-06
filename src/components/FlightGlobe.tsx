@@ -97,7 +97,7 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
       {
         lat: midpoint.latitude,
         lng: midpoint.longitude,
-        altitude: 2.15,
+        altitude: 3.5,
       },
       900,
     );

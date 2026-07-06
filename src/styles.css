@@ -317,9 +317,9 @@ p {
 .time-card {
   position: relative;
   display: grid;
-  grid-template-rows: 78px 58px 38px;
+  grid-template-rows: 78px 58px 48px;
   gap: 9px;
-  min-height: 216px;
+  min-height: 226px;
   overflow: hidden;
   border: 1px solid rgba(214, 224, 225, 0.9);
   border-radius: 8px;
@@ -414,17 +414,17 @@ p {
 }
 
 .time-card footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: flex-end;
-  justify-content: space-between;
-  min-height: 38px;
+  display: grid;
+  grid-template-rows: repeat(2, minmax(0, auto));
+  gap: 3px;
+  align-content: end;
+  min-height: 48px;
 }
 
-.time-card footer span:last-child {
-  margin-left: auto;
-  text-align: right;
+.time-card__zone {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .celestial {
@@ -644,9 +644,9 @@ p {
   }
 
   .time-card {
-    grid-template-rows: 70px 48px 18px;
+    grid-template-rows: 70px 48px 36px;
     gap: 7px;
-    min-height: 164px;
+    min-height: 182px;
     min-width: 0;
     padding: 8px;
   }
@@ -684,12 +684,9 @@ p {
     font-size: 0.66rem;
   }
 
-  .time-card footer span:last-child {
-    display: none;
-  }
-
   .time-card footer {
-    min-height: 18px;
+    gap: 2px;
+    min-height: 36px;
   }
 
   .celestial {

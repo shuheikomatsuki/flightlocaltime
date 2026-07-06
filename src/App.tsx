@@ -24,13 +24,24 @@ const defaultFlight: FlightFormValue = {
   flightLocalTimeMode: 'time-zone',
 };
 
+const FLIGHT_STORAGE_KEY = 'flighttime.flight.v1';
+const PROGRESS_STORAGE_KEY = 'flighttime.progress.v1';
+
 export function App() {
-  const [flight, setFlight] = useState(defaultFlight);
-  const [progress, setProgress] = useState(0);
+  const [flight, setFlight] = useState(readStoredFlight);
+  const [progress, setProgress] = useState(readStoredProgress);
   const [departureUtcEpochMs, setDepartureUtcEpochMs] = useState<number | null>(null);
 
   const fromAirport = useMemo(() => getAirportByCode(flight.fromCode), [flight.fromCode]);
   const toAirport = useMemo(() => getAirportByCode(flight.toCode), [flight.toCode]);
+
+  useEffect(() => {
+    writeStorage(FLIGHT_STORAGE_KEY, flight);
+  }, [flight]);
+
+  useEffect(() => {
+    writeStorage(PROGRESS_STORAGE_KEY, progress);
+  }, [progress]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -194,4 +205,86 @@ export function App() {
       </section>
     </main>
   );
+}
+
+function readStoredFlight(): FlightFormValue {
+  const storedValue = readStorage(FLIGHT_STORAGE_KEY);
+
+  if (!isRecord(storedValue)) {
+    return defaultFlight;
+  }
+
+  return {
+    fromCode: isAirportCode(storedValue.fromCode) ? storedValue.fromCode : defaultFlight.fromCode,
+    toCode: isAirportCode(storedValue.toCode) ? storedValue.toCode : defaultFlight.toCode,
+    departureLocalIso:
+      typeof storedValue.departureLocalIso === 'string' &&
+      /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(storedValue.departureLocalIso)
+        ? storedValue.departureLocalIso
+        : defaultFlight.departureLocalIso,
+    durationHours: clampInteger(storedValue.durationHours, 0, 24, defaultFlight.durationHours),
+    durationMinutes: clampInteger(
+      storedValue.durationMinutes,
+      0,
+      59,
+      defaultFlight.durationMinutes,
+    ),
+    flightLocalTimeMode:
+      storedValue.flightLocalTimeMode === 'longitude' ? 'longitude' : 'time-zone',
+  };
+}
+
+function readStoredProgress(): number {
+  const storedValue = readStorage(PROGRESS_STORAGE_KEY);
+
+  return clampNumber(storedValue, 0, 1, 0);
+}
+
+function readStorage(key: string): unknown {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    const item = window.localStorage.getItem(key);
+    return item === null ? null : JSON.parse(item);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: unknown) {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // Ignore storage failures so the calculator remains usable in private modes.
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isAirportCode(value: unknown): value is string {
+  return typeof value === 'string' && AIRPORTS.some((airport) => airport.code === value);
+}
+
+function clampInteger(value: unknown, min: number, max: number, fallback: number): number {
+  const numberValue = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN;
+
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, Math.trunc(numberValue)));
+}
+
+function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
+  const numberValue = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN;
+
+  if (!Number.isFinite(numberValue)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, numberValue));
 }

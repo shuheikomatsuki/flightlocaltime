@@ -75,9 +75,9 @@ export function TimeCard({
         </span>
       </div>
 
-      <footer>
-        <span>{periodLabels[period]}</span>
-        <span>{timeZoneLabel ?? timeZone}</span>
+      <footer className="time-card__footer">
+        <span className="time-card__period">{periodLabels[period]}</span>
+        <span className="time-card__zone">{timeZoneLabel ?? timeZone}</span>
       </footer>
     </article>
   );
