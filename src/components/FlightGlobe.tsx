@@ -120,7 +120,7 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
               height={size.height}
               globeOffset={[0, -56]}
               backgroundColor="rgba(0,0,0,0)"
-              globeImageUrl="/textures/earth-dark.jpg"
+              globeImageUrl="/textures/2k_earth_daymap.jpg"
               bumpImageUrl="/textures/earth-topology.png"
               onGlobeReady={() => {
                 setIsGlobeReady(true);

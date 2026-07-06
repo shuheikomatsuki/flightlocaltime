@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { formatLocalTimeParts, getDayPeriod, localIsoToUtcEpochMs, progressToUtcEpochMs } from '.';
+import {
+  formatLocalTimeParts,
+  formatLongitudeLocalTimeParts,
+  getDayPeriod,
+  localIsoToUtcEpochMs,
+  progressToUtcEpochMs,
+} from '.';
 
 describe('progressToUtcEpochMs', () => {
   it('converts progress from 0 to 1 into a UTC epoch inside the flight duration', () => {
@@ -79,6 +85,34 @@ describe('formatLocalTimeParts', () => {
     ).toMatchObject({
       isoDateTime: '2026-11-01T01:00:00',
       offsetMinutes: -480,
+    });
+  });
+});
+
+describe('formatLongitudeLocalTimeParts', () => {
+  it('uses longitude-derived solar offset instead of IANA time zone rules', () => {
+    const epochMs = Date.UTC(2026, 7, 1, 12, 0, 0);
+
+    expect(
+      formatLongitudeLocalTimeParts(epochMs, {
+        latitude: 0,
+        longitude: 139.7798,
+      }),
+    ).toMatchObject({
+      isoDateTime: '2026-08-01T21:19:00',
+      offsetMinutes: 559,
+      timeZone: 'Longitude UTC+09:19',
+    });
+
+    expect(
+      formatLongitudeLocalTimeParts(epochMs, {
+        latitude: 0,
+        longitude: -118.4085,
+      }),
+    ).toMatchObject({
+      isoDateTime: '2026-08-01T04:06:00',
+      offsetMinutes: -474,
+      timeZone: 'Longitude UTC-07:54',
     });
   });
 });

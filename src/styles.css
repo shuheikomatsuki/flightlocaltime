@@ -49,15 +49,16 @@ input {
   border-radius: 6px;
   background: #fbfdfc;
   color: #162025;
+  font-size: 1rem;
   padding: 8px 10px;
 }
 
 select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23587078' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-position: right 16px center;
+  background-position: right 10px center;
   background-repeat: no-repeat;
-  padding-right: 46px;
+  padding-right: 40px;
 }
 
 select:focus,
@@ -119,6 +120,47 @@ p {
   gap: 16px;
 }
 
+.route-fields {
+  display: grid;
+  gap: 8px;
+}
+
+.swap-route-button {
+  display: inline-grid;
+  width: 40px;
+  height: 36px;
+  place-items: center;
+  justify-self: end;
+  border: 1px solid #c7d2d4;
+  border-radius: 8px;
+  background: #fbfdfc;
+  color: #2f7d8a;
+  cursor: pointer;
+}
+
+.swap-route-button:hover {
+  border-color: #91b4ba;
+  background: #eef7f6;
+}
+
+.swap-route-button:focus-visible {
+  border-color: #2f7d8a;
+  outline: 3px solid rgba(47, 125, 138, 0.18);
+}
+
+.swap-route-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.swap-route-button path {
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
 .field {
   display: grid;
   gap: 7px;
@@ -137,6 +179,64 @@ p {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 12px;
+}
+
+.mode-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.mode-field legend {
+  color: #587078;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.segmented-control {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  border: 1px solid #c7d2d4;
+  border-radius: 8px;
+  background: #e8f0f0;
+  padding: 4px;
+}
+
+.segmented-control label {
+  min-width: 0;
+}
+
+.segmented-control input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented-control span {
+  display: grid;
+  min-height: 34px;
+  place-items: center;
+  border-radius: 6px;
+  color: #50656c;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.segmented-control input:checked + span {
+  background: #fbfdfc;
+  color: #162025;
+  box-shadow: 0 1px 4px rgba(10, 28, 32, 0.12);
+}
+
+.segmented-control input:focus-visible + span {
+  outline: 3px solid rgba(47, 125, 138, 0.18);
 }
 
 .route-summary {

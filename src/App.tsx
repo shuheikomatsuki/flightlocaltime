@@ -3,8 +3,17 @@ import { FlightForm, type FlightFormValue } from './components/FlightForm';
 import { FlightGlobe } from './components/FlightGlobe';
 import { TimeCard } from './components/TimeCard';
 import { AIRPORTS, getAirportByCode } from './data/airports';
-import { createRouteTimeZoneCache, getCachedRouteTimeZone } from './lib/route';
-import { formatLocalTimeParts, localIsoToUtcEpochMs, progressToUtcEpochMs } from './lib/time';
+import {
+  createRouteTimeZoneCache,
+  getCachedRouteTimeZone,
+  interpolateGreatCircle,
+} from './lib/route';
+import {
+  formatLocalTimeParts,
+  formatLongitudeLocalTimeParts,
+  localIsoToUtcEpochMs,
+  progressToUtcEpochMs,
+} from './lib/time';
 
 const defaultFlight: FlightFormValue = {
   fromCode: 'HND',
@@ -12,6 +21,7 @@ const defaultFlight: FlightFormValue = {
   departureLocalIso: '2026-08-01T18:00',
   durationHours: 10,
   durationMinutes: 0,
+  flightLocalTimeMode: 'time-zone',
 };
 
 export function App() {
@@ -76,6 +86,19 @@ export function App() {
     () => getCachedRouteTimeZone(routeTimeZoneCache, progress).timeZone,
     [progress, routeTimeZoneCache],
   );
+
+  const planeCoordinates = useMemo(
+    () => interpolateGreatCircle({ from: fromAirport, to: toAirport }, progress),
+    [fromAirport, progress, toAirport],
+  );
+
+  const flightLocalTimeParts = useMemo(() => {
+    if (currentUtcEpochMs === null || flight.flightLocalTimeMode === 'time-zone') {
+      return undefined;
+    }
+
+    return formatLongitudeLocalTimeParts(currentUtcEpochMs, planeCoordinates);
+  }, [currentUtcEpochMs, flight.flightLocalTimeMode, planeCoordinates]);
 
   const durationText = `${flight.durationHours}h ${flight.durationMinutes}m`;
   const progressText = `${Math.round(progress * 100)}%`;
@@ -156,6 +179,8 @@ export function App() {
               kind="flight"
               epochMs={currentUtcEpochMs}
               timeZone={flightTimeZone}
+              localTimeParts={flightLocalTimeParts}
+              timeZoneLabel={flightLocalTimeParts?.timeZone}
             />
             <TimeCard
               title="Arrival"

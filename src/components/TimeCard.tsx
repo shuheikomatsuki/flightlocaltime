@@ -1,6 +1,11 @@
 import type { CSSProperties } from 'react';
 import type { Airport } from '../data/airports';
-import { formatLocalTimeParts, getDayPeriod, type DayPeriod } from '../lib/time';
+import {
+  formatLocalTimeParts,
+  getDayPeriod,
+  type DayPeriod,
+  type LocalTimeParts,
+} from '../lib/time';
 
 export type TimeCardKind = 'departure' | 'flight' | 'arrival';
 
@@ -10,6 +15,8 @@ type TimeCardProps = {
   epochMs: number | null;
   timeZone: string;
   airport?: Airport;
+  localTimeParts?: LocalTimeParts | null;
+  timeZoneLabel?: string;
 };
 
 const periodLabels: Record<DayPeriod, string> = {
@@ -19,8 +26,21 @@ const periodLabels: Record<DayPeriod, string> = {
   night: 'Night',
 };
 
-export function TimeCard({ title, kind, epochMs, timeZone, airport }: TimeCardProps) {
-  const localTime = epochMs === null ? null : formatLocalTimeParts(epochMs, timeZone);
+export function TimeCard({
+  title,
+  kind,
+  epochMs,
+  timeZone,
+  airport,
+  localTimeParts,
+  timeZoneLabel,
+}: TimeCardProps) {
+  const localTime =
+    localTimeParts === undefined
+      ? epochMs === null
+        ? null
+        : formatLocalTimeParts(epochMs, timeZone)
+      : localTimeParts;
   const period = localTime === null ? 'night' : getDayPeriod(localTime.hour);
   const celestialPosition =
     localTime === null ? { x: 50, y: 50 } : getCelestialPosition(localTime.hour, localTime.minute);
@@ -57,7 +77,7 @@ export function TimeCard({ title, kind, epochMs, timeZone, airport }: TimeCardPr
 
       <footer>
         <span>{periodLabels[period]}</span>
-        <span>{timeZone}</span>
+        <span>{timeZoneLabel ?? timeZone}</span>
       </footer>
     </article>
   );
