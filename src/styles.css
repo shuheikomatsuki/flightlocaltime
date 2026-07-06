@@ -566,9 +566,7 @@ p {
 
 .visual-panel {
   position: relative;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 12px;
+  isolation: isolate;
   min-width: 0;
   max-width: 100%;
   height: 100vh;
@@ -580,13 +578,23 @@ p {
   padding: 12px 24px 14px;
 }
 
+.visual-panel > .time-card-grid {
+  position: relative;
+  z-index: 2;
+}
+
 .visual-panel > .timeline-panel {
-  justify-self: end;
-  width: min(430px, 100%);
+  position: absolute;
+  right: 24px;
+  bottom: 14px;
+  z-index: 2;
+  width: min(430px, calc(100% - 48px));
 }
 
 .globe-stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   min-height: 0;
   height: 100%;
   max-width: 100%;
@@ -665,11 +673,28 @@ p {
   }
 
   .visual-panel {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 12px;
     order: 1;
     width: 100%;
     height: 100svh;
     min-height: 560px;
     overflow: hidden;
+  }
+
+  .visual-panel > .timeline-panel {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    justify-self: end;
+    width: min(430px, 100%);
+  }
+
+  .globe-stage {
+    position: relative;
+    inset: auto;
+    z-index: auto;
   }
 
   h1 {

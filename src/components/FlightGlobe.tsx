@@ -90,6 +90,10 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
     ],
     [direction, planeCoordinates],
   );
+  const globeOffset = useMemo<[number, number]>(
+    () => (size.width > 820 ? [-110, 64] : [0, -24]),
+    [size.width],
+  );
 
   const focusRoute = useCallback(() => {
     globeRef.current?.pointOfView(
@@ -117,7 +121,7 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
               ref={globeRef}
               width={size.width}
               height={size.height}
-              globeOffset={[0, -24]}
+              globeOffset={globeOffset}
               backgroundColor="rgba(0,0,0,0)"
               globeImageUrl="/textures/2k_earth_daymap.jpg"
               bumpImageUrl="/textures/earth-topology.png"
