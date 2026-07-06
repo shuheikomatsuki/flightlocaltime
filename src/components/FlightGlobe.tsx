@@ -91,7 +91,7 @@ export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
     [direction, planeCoordinates],
   );
   const globeOffset = useMemo<[number, number]>(
-    () => (size.width > 820 ? [-110, 64] : [0, -24]),
+    () => (size.width > 820 ? [-110, 64] : [0, 56]),
     [size.width],
   );
 
