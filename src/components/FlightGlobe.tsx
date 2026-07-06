@@ -24,6 +24,7 @@ const Globe = lazy(() => import('react-globe.gl'));
 type FlightGlobeProps = {
   from: Airport;
   to: Airport;
+  progress: number;
 };
 
 type AirportPoint = {
@@ -51,13 +52,19 @@ type FlightArc = {
   endLng: number;
 };
 
+type PlaneMarker = {
+  lat: number;
+  lng: number;
+  direction: RouteDirection;
+};
+
 const globeMaterial = new MeshPhongMaterial({
   color: '#1f6f7a',
   emissive: '#082c36',
   shininess: 7,
 });
 
-export function FlightGlobe({ from, to }: FlightGlobeProps) {
+export function FlightGlobe({ from, to, progress }: FlightGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeRef = useRef<GlobeMethods>(undefined);
   const [isGlobeReady, setIsGlobeReady] = useState(false);
@@ -95,6 +102,20 @@ export function FlightGlobe({ from, to }: FlightGlobeProps) {
 
   const midpoint = useMemo(() => interpolateGreatCircle({ from, to }, 0.5), [from, to]);
   const direction = useMemo(() => getInitialRouteDirection(from, to), [from, to]);
+  const planeCoordinates = useMemo(
+    () => interpolateGreatCircle({ from, to }, progress),
+    [from, progress, to],
+  );
+  const planeMarker = useMemo<PlaneMarker[]>(
+    () => [
+      {
+        lat: planeCoordinates.latitude,
+        lng: planeCoordinates.longitude,
+        direction,
+      },
+    ],
+    [direction, planeCoordinates],
+  );
 
   const focusRoute = useCallback(() => {
     globeRef.current?.pointOfView(
@@ -157,12 +178,24 @@ export function FlightGlobe({ from, to }: FlightGlobeProps) {
               pathColor={() => '#fff2a8'}
               pathStroke={2.2}
               pathResolution={2}
+              htmlElementsData={planeMarker}
+              htmlLat="lat"
+              htmlLng="lng"
+              htmlAltitude={0.34}
+              htmlElement={(datum) => createPlaneElement(datum as PlaneMarker)}
+              htmlTransitionDuration={80}
               enablePointerInteraction
             />
           ) : null}
         </Suspense>
       </div>
-      <RouteBadge from={from} to={to} direction={direction} midpoint={midpoint} />
+      <RouteBadge
+        from={from}
+        to={to}
+        direction={direction}
+        progress={progress}
+        coordinates={planeCoordinates}
+      />
     </section>
   );
 }
@@ -171,12 +204,14 @@ function RouteBadge({
   from,
   to,
   direction,
-  midpoint,
+  progress,
+  coordinates,
 }: {
   from: Airport;
   to: Airport;
   direction: RouteDirection;
-  midpoint: Coordinates;
+  progress: number;
+  coordinates: Coordinates;
 }) {
   return (
     <div className="route-badge">
@@ -184,11 +219,23 @@ function RouteBadge({
         {from.code} to {to.code}
       </span>
       <span>{direction === 'eastbound' ? 'Eastbound' : 'Westbound'}</span>
+      <span>{Math.round(progress * 100)}%</span>
       <span>
-        {midpoint.latitude.toFixed(1)}, {midpoint.longitude.toFixed(1)}
+        {coordinates.latitude.toFixed(1)}, {coordinates.longitude.toFixed(1)}
       </span>
     </div>
   );
+}
+
+function createPlaneElement(marker: PlaneMarker): HTMLElement {
+  const element = document.createElement('div');
+  element.className = 'plane-marker';
+
+  const plane = document.createElement('span');
+  plane.className = `plane-shape plane-shape--${marker.direction}`;
+  element.append(plane);
+
+  return element;
 }
 
 function toAirportPoint(airport: Airport, kind: string, color: string): AirportPoint {
