@@ -9,7 +9,6 @@ import {
   interpolateGreatCircle,
 } from './lib/route';
 import {
-  formatLocalTimeParts,
   formatLongitudeLocalTimeParts,
   localIsoToUtcEpochMs,
   progressToUtcEpochMs,
@@ -109,14 +108,6 @@ export function App() {
     };
   }, [flight.departureLocalIso, fromAirport.timeZone]);
 
-  const departureUtc = useMemo(() => {
-    if (departureUtcEpochMs === null) {
-      return 'Invalid';
-    }
-
-    return formatLocalTimeParts(departureUtcEpochMs, 'Etc/UTC').isoDateTime.replace('T', ' ');
-  }, [departureUtcEpochMs]);
-
   const durationMs = useMemo(
     () => Math.max(0, flight.durationHours * 60 + flight.durationMinutes) * 60 * 1000,
     [flight.durationHours, flight.durationMinutes],
@@ -157,7 +148,6 @@ export function App() {
     return formatLongitudeLocalTimeParts(currentUtcEpochMs, planeCoordinates);
   }, [currentUtcEpochMs, flight.flightLocalTimeMode, planeCoordinates]);
 
-  const durationText = `${flight.durationHours}h ${flight.durationMinutes}m`;
   const progressText = `${Math.round(progress * 100)}%`;
   const handleProgressInput = (event: FormEvent<HTMLInputElement>) => {
     const nextProgress = Number(event.currentTarget.value);
@@ -254,16 +244,6 @@ export function App() {
             <span className="summary-label">To</span>
             <strong>{toAirport.name}</strong>
             <span>{toAirport.timeZone}</span>
-          </div>
-          <div className="summary-grid">
-            <span>
-              <span className="summary-label">UTC</span>
-              {departureUtc}
-            </span>
-            <span>
-              <span className="summary-label">Duration</span>
-              {durationText}
-            </span>
           </div>
         </section>
       </aside>
